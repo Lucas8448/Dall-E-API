@@ -26,14 +26,14 @@
 </template>
 
 <script>
-import axios from "axios";
-
 export default {
   data() {
     return {
       prompt: "",
       imageUrl: "",
-      img_sizes: ["1048x1048", "512x512", "256x256"],
+      num_images: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      num_image: 1,
+      img_sizes: ["1024x1024", "512x512", "256x256"],
       img_size: "256x256",
     };
   },
@@ -44,32 +44,35 @@ export default {
         return;
       }
 
-      const API_KEY = "your_api_key";
+      const API_KEY = "api_key";
       const API_URL = "https://api.openai.com/v1/images/generations";
 
       try {
-        const response = await axios.post(
-          API_URL,
-          {
+        const response = await fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${API_KEY}`,
+          },
+          body: JSON.stringify({
             prompt: this.prompt,
             n: 1,
             size: this.img_size,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${APIKEY}`,
-            },
-          }
-        );
+          }),
+        });
 
-        if (response.data && response.data.data.length > 0) {
-          this.imageUrl = response.data.data[0].url;
+        if (response.ok) {
+          const data = await response.json();
+          if (data && data.data.length > 0) {
+            this.imageUrl = data.data[0].url;
+          } else {
+            alert("Failed to generate the image. Please try again.");
+          }
         } else {
-          alert("Failed to generate the image. Please try again.");
+          alert("Error generating image. Please check the console for details.");
         }
       } catch (error) {
-        console.error("Error generating image:", error);
+        console.log("Error generating image:", error);
         alert("Error generating image. Please check the console for details.");
       }
     },
